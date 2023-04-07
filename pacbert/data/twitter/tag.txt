@@ -1,0 +1,10 @@
+[PAD]
+[UNK]
+[MASK]
+life
+love
+happy
+dream
+inspire
+journey
+goal

@@ -1,0 +1,22 @@
+[   
+    {
+        "user": 0,
+        "text": "the way to get started is to quit talking and begin doing.",
+        "tag": ["life", "inspire", "goal"]
+    },
+    {
+        "user": 1,   
+        "text": "love the life you live. live the life you love.",
+        "tag": ["love", "life", "happy"]
+    },
+    {
+        "user": 2,   
+        "text": "if you can dream it, you can do it.",
+        "tag": ["dream", "inspire"]
+    },
+    {
+        "user": 3,   
+        "text": "the journey is long, but the goal is in each step.",
+        "tag": ["journey", "goal", "inspire"]
+    }
+]
