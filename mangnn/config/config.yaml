@@ -1,0 +1,65 @@
+# --------------------------
+# CONFIGURATION FOR MANGNN.
+# --------------------------
+
+# Device
+DEVICE: "auto"    # Device. {'cpu', 'cuda', 'auto'}
+
+# Data
+BATCH_SIZE: 128   # Batch size.
+NUM_WORKERS: 2    # Number of workers for dataloader.
+
+# Train
+DO_TRAIN: True    # Whether to train the model.
+DO_TEST: True     # Whether to evaluate the model.
+BEGIN_EPOCH: 1    # Begin epoch (start from 1). For resume mode, the model will resume from the checkpoint epoch.
+END_EPOCH: 4      # End epoch.
+
+# Acceleration
+USE_DDP: True     # Whether to use DDP.
+USE_AMP: True     # Whether to use AMP (Available for GPU only).
+DTYPE: bfloat16   # Data type. {'float16', 'bfloat16', 'float32'} (bfloat16 for cpu)
+
+# Initiation
+INIT_TYPE: ""     # Initial type. {'checkpoint', ''} Leave blank for scratch.
+INIT_FROM: ""     # Initial from. {'./mangnn/outputs/ckpt.pt', ''} Leave blank for scratch.
+
+# Checkpoint
+SAVE_EVERY: 2                            # Interval steps for model checkpoint.
+CKPT_PATH: ./mangnn/outputs              # Checkpoint path.
+TSB_DIR: "./mangnn/outputs/logs"         # Tensorboard path.
+JSON_DIR: "./mangnn/outputs/result.json" # Result path.
+
+# Optimizer and learning rate
+OPTIMIZER: "AdamW"         # Optimizer. {'Adam', 'AdamW'}
+WEIGHT_DECAY: 1e-2
+BETAS: (0.9, 0.95)
+LR: 5e-4
+LR_FACTOR: 0.1
+LR_SCHEDULER: "plateau"    # LR scheduler. {'plateau', 'warmup_linear', 'warmup_cosine'}
+WARMUP_STEPS: 500          # Warmup steps for LR scheduler. 0 for no warmup.
+
+# Gradient
+GRADIENT_ACCUMULATION_STEPS: 1  # 1 is disable
+CLIP_GRAD: 1.0                  # 0.0 is disable
+
+# MANGNN model
+MANGNN:
+  user_size: 6387
+  tag_size: 3147  # Exclude [UNK], [MSK], and [PAD] token.
+  hidden_size: 64 
+  num_layers: 2
+  num_attention_heads: 2
+  activation: "gelu"  # Activation function. {'gelu', 'relu'}
+  hidden_dropout_prob: 0.1
+  attention_probs_dropout_prob: 0.1
+  initializer_range: 0.02
+  layer_norm_eps: 1e-12
+  use_cache: True
+  classifier_dropout: 0.1
+  num_labels: 2
+
+TRAIN_DATA_PATH: "mangnn/data/twitter/twitter_train.npy"
+VAL_DATA_PATH: "mangnn/data/twitter/twitter_val.npy"
+TEST_DATA_PATH: "mangnn/data/twitter/twitter_test.npy"
+NETWORK_PATH: "mangnn/data/twitter/networks/networks.json"

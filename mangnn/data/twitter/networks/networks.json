@@ -1,0 +1,42 @@
+[
+    {
+        "name": "follow",
+        "src_type": "user",
+        "tgt_type": "user",
+        "adj": "mangnn/data/twitter/networks/follow.npy",
+        "agg_src": true,
+        "agg_tgt": false
+    },
+    {
+        "name": "post",
+        "src_type": "tag",
+        "tgt_type": "user",
+        "adj": "mangnn/data/twitter/networks/post.npy",
+        "agg_src": true,
+        "agg_tgt": true
+    },
+    {
+        "name": "like",
+        "src_type": "tag",
+        "tgt_type": "user",
+        "adj": "mangnn/data/twitter/networks/like.npy",
+        "agg_src": true,
+        "agg_tgt": true
+    },
+    {
+        "name": "rt",
+        "src_type": "tag",
+        "tgt_type": "user",
+        "adj": "mangnn/data/twitter/networks/retweet.npy",
+        "agg_src": true,
+        "agg_tgt": true
+    },
+    {
+        "name": "cooccur",
+        "src_type": "tag",
+        "tgt_type": "tag",
+        "adj": "mangnn/data/twitter/networks/cooccur.npy",
+        "agg_src": true,
+        "agg_tgt": false
+    }
+]
