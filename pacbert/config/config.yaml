@@ -1,38 +1,44 @@
+# --------------------------
+# CONFIGURATION FOR PACBERT.
+# --------------------------
+
 # Device
-DEVICE: 'auto'  # Device. {'cpu', 'cuda', 'auto'}
+DEVICE: "auto"    # Device. {'cpu', 'cuda', 'auto'}
 
 # Data
 BATCH_SIZE: 128   # Batch size.
 NUM_WORKERS: 2    # Number of workers for dataloader.
 
 # Train
-DO_TRAIN: True  # Whether to train the model.
-DO_TEST: True   # Whether to evaluate the model.
-BEGIN_EPOCH: 1  # Begin epoch (start from 1). For resume mode, the model will resume from the checkpoint epoch.
-END_EPOCH: 4    # End epoch.
+DO_TRAIN: True    # Whether to train the model.
+DO_TEST: True     # Whether to evaluate the model.
+BEGIN_EPOCH: 1    # Begin epoch (start from 1). For resume mode, the model will resume from the checkpoint epoch.
+END_EPOCH: 4      # End epoch.
 
 # Acceleration
-USE_DDP: True   # Whether to use DDP.
-USE_AMP: True   # Whether to use AMP (Available for GPU only).
-DTYPE: bfloat16 # Data type. {'float16', 'bfloat16', 'float32'} (bfloat16 for cpu)
+USE_DDP: True     # Whether to use DDP.
+USE_AMP: True     # Whether to use AMP (Available for GPU only).
+DTYPE: bfloat16   # Data type. {'float16', 'bfloat16', 'float32'} (bfloat16 for cpu)
 
 # Initiation
-INIT_TYPE: ""   # Initial type. {'checkpoint', 'pretrained', 'scratch'}
-INIT_FROM: ""   # Initial from. {'./pacbert/ckpt.pt', 'bert-base-uncased', ''} Leave blank for scratch.
+INIT_TYPE: ""     # Initial type. {'checkpoint', 'pretrained', ''} Leave blank for scratch.
+INIT_FROM: ""     # Initial from. {'./pacbert/outputs/ckpt.pt', 'bert-base-uncased', ''} Leave blank for scratch.
+GNN_PATH: ""      # Path of pretrained MANGNN.    {'./mangnn/outputs/ckpt.pt', ''} Leave blank for scratch.
+GNN_CONFIG: ""    # Path of MANGNN configuration. {'./mangnn/config/config.yaml', ''} Leave blank for scratch.
 
 # Checkpoint
-SAVE_EVERY: 2                     # Interval steps for model checkpoint.
-CKPT_PATH: ./pacbert/             # Checkpoint path.
-TSB_DIR: "./pacbert/logs"         # Tensorboard path.
-JSON_DIR: "./pacbert/result.json" # Result path.
+SAVE_EVERY: 2                             # Interval steps for model checkpoint.
+CKPT_PATH: "./pacbert/outputs"            # Checkpoint path.
+TSB_DIR: "./pacbert/outputs/logs"         # Tensorboard path.
+JSON_DIR: "./pacbert/outputs/result.json" # Result path.
 
 # Optimizer and learning rate
-OPTIMIZER: 'AdamW'
+OPTIMIZER: "AdamW"
 WEIGHT_DECAY: 1e-2
 BETAS: (0.9, 0.95)
 LR: 1e-4
 LR_FACTOR: 0.1
-LR_SCHEDULER: 'warmup_linear'   # LR scheduler. {'plateau', 'warmup_linear', 'warmup_cosine'}
+LR_SCHEDULER: "warmup_linear"   # LR scheduler. {'plateau', 'warmup_linear', 'warmup_cosine'}
 WARMUP_STEPS: 500               # Warmup steps for LR scheduler. 0 for no warmup.
 
 # Gradient
