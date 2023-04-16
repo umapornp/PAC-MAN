@@ -4,6 +4,7 @@ import torch.nn as nn
 from pacbert.utils.logging import LOG
 from pacbert.utils.modeling_bert import BertEncoder, BertPooler, BertPredictionHeadTransform
 from pacbert.utils.tagtokenizer import TagTokenizer
+from mangnn.model import MANGNNModel 
 from transformers import BertTokenizer, BertModel
 
 
@@ -64,23 +65,39 @@ class PACBertPreTrainedModel(nn.Module):
 
 
     @classmethod
-    def from_pretrained(cls, model_name, config):
+    def from_pretrained(
+        cls,
+        bert_name,
+        config,
+        gnn_path=None,
+        gnn_config=None,
+        gnn_graphs=None,
+        device="cpu",
+        map_gnn_params=True,
+        use_last_gnn=True
+    ):
         """ Load Bert pretrained model.
         
         Args:
-            model_name: Name of Bert pretrained model.
-            config: Configuration for the PACBert model. 
+            bert_name: Name of Bert pretrained model.
+            config: Configuration for the PACBert model.
+            gnn_path: Path of pretrained GNN containing weights for user and tag embedding.
+            gnn_config: Configuration for MANGNN model.
+            gnn_graphs: List of `Graph` objects containing structure for GNNs.
+            device: Running device.
+            map_gnn_params: Whether to map GNN's parameter names between model and pretrained model.
+            use_last_gnn: Whether to use user and tag embedding from the last GNN layer.
         
         Returns:
-            pacbert: PACBert model initialized from Bert pretrained model.
+            pacbert: PACBert model initialized from Bert pretrained model and MANGNN pretrained model.
         """
-        LOG.info(f"Loading pretrained model from {model_name}.")
+        LOG.info(f"Loading pretrained BERTModel from '{bert_name}'.")
 
         unshared_params = {"embeddings.token_type_embeddings.weight"}
 
         # Construct model.
         pacbert = cls(config)
-        bert = BertModel.from_pretrained(model_name)
+        bert = BertModel.from_pretrained(bert_name)
 
         # Get state_dict()
         pacbert_sd = pacbert.state_dict()
@@ -103,7 +120,7 @@ class PACBertPreTrainedModel(nn.Module):
         
         # Initialize tag embedding with the same word embedding from Bert pretrained model.
         # Get mapping between the same word and tag.
-        _, tag2vocab = vocab_tag_mapping(model_name)
+        _, tag2vocab = vocab_tag_mapping(bert_name)
 
         bert_word_emb_name = "embeddings.word_embeddings.weight"
         pacbert_tag_emb_name = prefix + "embeddings.bert_tag_embeddings.weight"
@@ -113,6 +130,37 @@ class PACBertPreTrainedModel(nn.Module):
 
         pacbert_tag_emb[list(tag2vocab.keys())] = bert_word_emb[list(tag2vocab.values())]
         pacbert_sd[pacbert_tag_emb_name] = pacbert_tag_emb
+
+        # Get pretrained MANGNN model.
+        mangnn_user_emb_name = "user_embeddings.weight"
+        mangnn_tag_emb_name = "tag_embeddings.weight"
+        pacbert_user_emb_name =  "embeddings.user_embeddings.weight"
+        pacbert_gnn_tag_emb_name = "embeddings.gnn_tag_embeddings.weight"
+
+        if gnn_path:
+            LOG.info(f"Loading pretrained MANGNNModel from '{gnn_path}'.")
+            
+            if map_gnn_params:
+                mangnn = MANGNNModel.from_pretrained(model_path=gnn_path, config=gnn_config, graphs=gnn_graphs, device=device)
+                
+                # Use embedding from the last GNN layer. 
+                if use_last_gnn:
+                    mangnn_outputs = mangnn()
+                    gnn_user_embeddings, gnn_tag_embeddings = mangnn_outputs.last_user, mangnn_outputs.last_tag
+
+                else:
+                    mangnn_sd = mangnn.state_dict()
+                    gnn_user_embeddings, gnn_tag_embeddings = mangnn_sd[mangnn_user_emb_name], mangnn_sd[mangnn_tag_emb_name] 
+                    
+            else:
+                pretrain = torch.load(gnn_path, map_location=device)
+                pretrain = pretrain["MODEL"] if "MODEL" in pretrain.keys() else pretrain
+                pretrain_prefix = "pacbert." if list(pretrain.keys())[0].startswith("pacbert.") else ""
+                gnn_user_embeddings, gnn_tag_embeddings = pretrain[pretrain_prefix + pacbert_user_emb_name], pretrain[pretrain_prefix + pacbert_gnn_tag_emb_name]
+
+            pacbert_sd[prefix + pacbert_user_emb_name] = gnn_user_embeddings 
+            pacbert_sd[prefix + pacbert_gnn_tag_emb_name][3:] = gnn_tag_embeddings
+
         pacbert.load_state_dict(pacbert_sd)
 
         return pacbert
