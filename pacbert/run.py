@@ -10,6 +10,7 @@ from pacbert.utils.callbacks import ModelCheckpoint, ProgressBarLogger, Monitor,
 from pacbert.utils.metrics import Precision, Recall, F1Score
 from pacbert.utils.optimizer import WarmupLinearSchedule, WarmupCosineSchedule, group_optimizer_parameters
 from pacbert.utils.loss import CrossEntropyHungarianLoss
+from mangnn.graph import GraphLoader
 
 from omegaconf import OmegaConf
 from torch.optim import AdamW
@@ -97,7 +98,7 @@ def setup_data(config):
     return datamodule
 
 
-def setup_model(config):
+def setup_model(config, device):
     """ Setup model. 
     
     Args:
@@ -106,9 +107,23 @@ def setup_model(config):
     Returns:
         model: Model.
     """
-    # Initialize from BERT pretrained model.
+    # Initialize from BERT pretrained model and MANGNN pretrained model.
     if config.INIT_TYPE == "pretrained":
-        model = PACBertForRecommendation.from_pretrained(config.INIT_FROM, config.PACBERT)
+
+        gnn_config, gnn_graphs = None, None
+        if config.GNN_PATH and config.GNN_CONFIG:
+            gnn_config = OmegaConf.load(config.GNN_CONFIG)
+            gnn_graphs = GraphLoader(gnn_config.NETWORK_PATH).graphs
+            gnn_config = gnn_config.MANGNN
+            
+        model = PACBertForRecommendation.from_pretrained(bert_name=config.INIT_FROM,
+                                                         config=config.PACBERT,
+                                                         gnn_path=config.GNN_PATH,
+                                                         gnn_config=gnn_config,
+                                                         gnn_graphs=gnn_graphs,
+                                                         device=device,
+                                                         map_gnn_params=True,
+                                                         use_last_gnn=True)
 
     # Initialize from scratch or checkpoint.
     else:
@@ -239,7 +254,7 @@ def main(config):
 
     # Setup.
     datamodule = setup_data(config)
-    model = setup_model(config)
+    model = setup_model(config, device)
     optimizer = setup_optimizer(config, model)
     lr_scheduler = setup_lr_scheduler(config, optimizer, datamodule.train_loader)
     loss = setup_loss()
